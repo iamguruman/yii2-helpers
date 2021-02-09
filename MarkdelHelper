@@ -1,0 +1,97 @@
+/*
+
+Для работы этих методов нужно в таблице в БД создать поля:
+  markdel_by - int, идентификатор пользователя
+  markdel_at - datetime, дата удаления
+  
+  также добавить их в валидатор rules в модели
+
+в модели нужно создать связь для связи с пользователем:
+  public function getMarkdelBy(){
+        return $this->hasOne(User::className(), ['id' => 'markdel_by']);
+  }
+
+(c) author Alex Babiev 2021
+
+*/
+
+/**
+ *
+ * вспомогательная функция для удаления записей в базе
+ *
+ * @param $context \yii\web\View - контекс this из потока
+ * @param $model - модель у которой будем удалять запись
+ * @param $urlRestore - url на который вернуться после восстановления
+ * @param $urlDelete - url на который вернуться после отметки записи на удаление 
+ * @return mixed
+ */
+function aControllerActionMarkdel($context, $model, $urlRestore, $urlDelete = 'index'){
+
+    if($model->markdel_by){
+
+        $model->markdel_by = null;
+        $model->markdel_at = null;
+        $model->save();
+
+        return $context->redirect($urlRestore);
+
+    } else {
+
+        $model->markdel_by = aUserMyId();
+        $model->markdel_at = aDateNow();
+        $model->save();
+
+        return $context->redirect([$urlDelete]);
+
+    }
+
+}
+
+/**
+ * выводит кнопку удалить\восставноить на форму view
+ * @param $model
+ * @return string
+ */
+function aHtmlButtonDelete($model){
+
+    if($model->markdelBy){
+        $label = 'Восстановить?';
+        $class = 'btn-success';
+    } else {
+        $class = 'btn-danger';
+        $label = 'Удалить?';
+    }
+
+    return Html::a($label, ['delete', 'id' => $model->id], [
+        'class' => "btn {$class}",
+        'data' => [
+            'confirm' => 'Уверены?',
+            'method' => 'post',
+        ],
+    ]);
+
+}
+
+/**
+ * 
+ * в таблицу GridView выводит колонку ID, в которой указывает ID объекта и его состояние удален\нет,
+ * если удален, то отображает красную корзину
+ * колонке в GridView необходимо установить форма raw: 'format' => 'raw'
+ * 
+ * @param $model
+ * @return string
+ */
+function aGridVIewColumnId($model){
+
+    $ret = [];
+
+    $ret [] = $model->id;
+
+    if($model->markdel_by){
+        $title = $model->markdelBy->lastNameWithInitials . " " . $model->markdel_at;
+        $ret [] = "<i class='fas fa-trash' style='color:red' title='{$title}'></i>";
+    }
+
+    return implode("&nbsp;", $ret);
+
+}
