@@ -1,0 +1,28 @@
+/**
+ *
+ * кнопка восстановить\удалить запись
+ *
+ * @param $model - у модели должны быть обязательно поле markdel_by и геттер markdelBy()
+ * @return string
+ */
+function aHtmlButtonMarkdelRestore($model){
+
+    if($model->markdelBy){
+        $text = 'Восставноить?';
+        $class = 'btn btn-success';
+        $confirm = 'Восстановить?';
+    } else {
+        $text = 'Удалить?';
+        $class = 'btn btn-danger';
+        $confirm = 'Удалить?';
+    }
+
+    return Html::a($text, ['delete', 'id' => $model->id], [
+        'class' => $class,
+        'data' => [
+            'confirm' => $confirm,
+            'method' => 'post',
+        ],
+    ]);
+
+}
