@@ -1,0 +1,22 @@
+function aRemoveDuplicates($model){
+
+        $searchs = MJpsSupplier::find()->groupBy(['jp_id', 'supplier_id'])->all();
+
+        $items = [];
+
+        foreach ($searchs as $search){
+            $items [] = ['jp_id' => $search->jp_id, 'supplier_id' => $search->supplier_id];
+        }
+
+        MJpsSupplier::deleteAll();
+
+        foreach ($items as $item){
+            $new = new MJpsSupplier();
+            $new->created_by = 1;
+            $new->created_at = aDateNow();
+            $new->jp_id = $item['jp_id'];
+            $new->supplier_id = $item['supplier_id'];
+            $new->save();
+        }
+
+}
